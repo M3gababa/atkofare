@@ -42,6 +42,6 @@ if (nfcPermissionStatus.state === "granted") {
 } else {
   document.querySelector("#scanButton").style.display = "block";
   document.querySelector("#scanButton").onclick = event => {
-    startScanning();
+    nfcRead();
   };
 }
