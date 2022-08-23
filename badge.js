@@ -37,4 +37,3 @@ async function nfcRead() {
 }
 
 nfcRead();
-defer
