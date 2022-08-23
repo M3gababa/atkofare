@@ -35,5 +35,13 @@ async function nfcRead() {
         console.log("Argh! " + error);
     }
 }
+const nfcPermissionStatus = await navigator.permissions.query({ name: "nfc" });
 
-nfcRead();
+if (nfcPermissionStatus.state === "granted") {
+  nfcRead();
+} else {
+  document.querySelector("#scanButton").style.display = "block";
+  document.querySelector("#scanButton").onclick = event => {
+    startScanning();
+  };
+}
