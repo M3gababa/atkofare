@@ -1,47 +1,52 @@
-console.log("Start script");
-console.log("Width : " + window.innerWidth);
-console.log("Height " + window.innerHeight);
-
-async function nfcRead() {
+async function nfcRead() {   
     try {
-        console.log("NDEF Reader definition");
+      	console.log("initiating NFC reader");
         const ndef = new NDEFReader();
-        console.log("Wait scan...");
         await ndef.scan();
-        console.log("Scan started...");
-
+      	console.log("listening");
+        
         ndef.addEventListener("readingerror", () => {
             console.log("NFC tag not supported. Try another one.");
         });
 
         ndef.addEventListener("reading", ({ message, serialNumber }) => {
             var badgeId = parseInt(serialNumber.replaceAll(":",""), 16);
-            console.log("Serial Number: " + parseInt(serialNumber.replaceAll(":",""), 16));
-
-            document.getElementById("idp-discovery-username").value = badgeId;
-            document.getElementById("idp-discovery-username").dispatchEvent(new Event('change', { 'bubbles': true }));
-            document.getElementById("idp-discovery-submit").click();
-            var checkExist = setInterval(function() {
-               if (document.getElementById("okta-signin-password")!=null) {
-                  console.log("okta-signin-password exists!");
-                  document.getElementById("okta-signin-password").value = badgeId;
-                document.getElementById("okta-signin-password").dispatchEvent(new Event('change', { 'bubbles': true }));
-                document.getElementById("okta-signin-submit").click();
-                  clearInterval(checkExist);
-               }
-            }, 100);
+            
+            var inputs = document.getElementsByTagName('input');
+            for(var field of inputs) {
+                switch(field.type) {
+                    case 'text':
+                        field.value=badgeId;
+                        field.dispatchEvent(new Event('change', { 'bubbles': true }));
+                        break;
+                    case 'password':
+                        field.value=badgeId;
+                        field.dispatchEvent(new Event('change', { 'bubbles': true }));
+                        break;
+                    case 'checkbox':
+                        break;
+                    case 'submit':
+                        field.click();
+                        break;
+                    default:
+                        console.log('do nothing');
+                } 
+            }
         });
     } catch (error) {
-        console.log("Argh! " + error);
+        console.log("Issue : " + error);
+        document.getElementById("authcontainer").addEventListener("click",async () => {
+			try {
+    			const ndefb = new NDEFReader();
+    			await ndefb.scan();
+    			location.reload();
+			} catch (error) {
+				 //log("Argh! " + error);
+			}
+		});
     }
 }
-const nfcPermissionStatus = await navigator.permissions.query({ name: "nfc" });
 
-if (nfcPermissionStatus.state === "granted") {
+oktaSignIn.on('ready', function () {
   nfcRead();
-} else {
-  document.querySelector("#scanButton").style.display = "block";
-  document.querySelector("#scanButton").onclick = event => {
-    nfcRead();
-  };
-}
+});
